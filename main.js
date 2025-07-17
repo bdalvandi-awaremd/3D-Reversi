@@ -130,6 +130,11 @@ for (let i = -1; i <= 1; i++) {
   }
 }
 function newGame() {
+
+  const gameOverScreen = document.getElementById('game-over-screen');
+  gameOverScreen.classList.add('hidden');
+  gameOverScreen.classList.remove('visible');
+
   while (piecesGroup.children.length > 0) {
     piecesGroup.remove(piecesGroup.children[0]);
   }
@@ -205,23 +210,34 @@ function getValidMoves(player) {
   }
   return moves;
 }
+
 function endGame() {
-  let b = 0;
-  let w = 0;
-  for (let x = 0; x < 4; x++) {
-    for (let y = 0; y < 4; y++) {
-      for (let z = 0; z < 4; z++) {
-        if (board[x][y][z] === 1) b++;
-        if (board[x][y][z] === 2) w++;
-      }
+    // 1. Get the HTML elements for the game over screen
+    const gameOverScreen = document.getElementById('game-over-screen');
+    const winnerText = document.getElementById('winner-text');
+    const finalScoreText = document.getElementById('final-score-text');
+
+    // 2. Calculate the final score
+    let blackScore = 0;
+    let whiteScore = 0;
+    for (const cell of board.flat(2)) {
+        if (cell === 1) blackScore++;
+        if (cell === 2) whiteScore++;
     }
-  }
-  let msg = "Game Over!\n";
-  msg += `Final Score: Black ${b} - White ${w}\n`;
-  if (b > w) msg += "Black wins!";
-  else if (w > b) msg += "White wins!";
-  else msg += "It's a draw!";
-  alert(msg);
+
+    // 3. Determine the winner and set the text content
+    if (blackScore > whiteScore) {
+        winnerText.textContent = "Black Wins!";
+    } else if (whiteScore > blackScore) {
+        winnerText.textContent = "White Wins!";
+    } else {
+        winnerText.textContent = "It's a Draw!";
+    }
+    finalScoreText.textContent = `Final Score: Black ${blackScore} - White ${whiteScore}`;
+
+    // 4. Make the game over screen visible with a smooth fade
+    gameOverScreen.classList.remove('hidden');
+    gameOverScreen.classList.add('visible');
 }
 
 function switchPlayer() {
@@ -397,6 +413,7 @@ animate();
 window.addEventListener("mousemove", onMouseMove);
 window.addEventListener("mousedown", onMouseClick);
 document.getElementById("newGameBtn").addEventListener("click", newGame);
+document.getElementById('play-again-btn').addEventListener('click', newGame);
 
 window.addEventListener("keydown", (event) => {
   if (event.key === "Shift") {
@@ -415,5 +432,7 @@ window.addEventListener("keyup", (event) => {
     setGhostMode(false);
   }
 });
+
+
 
 

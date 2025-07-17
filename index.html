@@ -9,6 +9,48 @@
         #info { font-size: 24px; }
         #score { font-size: 18px; }
         button { padding: 10px; font-size: 16px; margin-top: 10px; }
+
+        #game-over-screen {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0, 0, 0, 0.8);
+            padding: 30px 50px;
+            border-radius: 10px;
+            text-align: center;
+            border: 1px solid #555;
+            transition: opacity 0.5s ease-in-out, visibility 0.5s;
+        }
+
+        #game-over-screen h2 {
+            margin-top: 0;
+            font-size: 2.5em;
+        }
+
+        #game-over-screen p {
+            font-size: 1.2em;
+            margin-bottom: 25px;
+        }
+
+        #game-over-screen button {
+            font-size: 1.2em;
+            padding: 10px 20px;
+            cursor: pointer;
+        }
+
+        /* These classes will control the visibility and fade animation */
+        .hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none; /* Can't click on it when hidden */
+        }
+
+        .visible {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+        }
     </style>
 </head>
 <body>
@@ -17,6 +59,13 @@
         <div id="score">Black: 2 - White: 2</div>
         <button id="newGameBtn">New Game</button>
     </div>
+
+    <div id="game-over-screen" class="hidden">
+        <h2 id="winner-text">Black Wins!</h2>
+        <p id="final-score-text">Final Score: 34 - 30</p>
+        <button id="play-again-btn">Play Again</button>
+    </div>
+
     <script type="module" src="./main.js"></script>
 </body>
 </html>
