@@ -2,7 +2,14 @@
 <html>
 <head>
     <title>3D Reversi - AI</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <style>
+        html, body {
+            width: 100%;
+            height: 100%;
+            overflow: hidden; /* Prevent scrolling on mobile */
+        }
         body { margin: 0; background-color: #1a1a1a; color: white; font-family: sans-serif; }
         canvas { display: block; }
         #ui { 
@@ -43,6 +50,11 @@
 
         #newGameBtn:hover {
             background-color: #666;
+        }
+
+        /* Make the pop-up screens wider on desktop */
+        #intro-screen, #game-over-screen {
+            min-width: 450px;
         }
 
         #intro-screen {
@@ -122,6 +134,69 @@
             visibility: visible;
             pointer-events: auto;
         }
+
+        #mobile-controls {
+            display: none; /* Hidden by default on desktop */
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 11;
+            opacity: 0.7;
+        }
+
+        #mobile-controls button {
+            width: 55px;
+            height: 55px;
+            font-size: 28px;
+            line-height: 55px;
+            margin: 0 8px;
+            border-radius: 50%;
+            border: 2px solid white;
+            background-color: rgba(0, 0, 0, 0.4);
+            color: white;
+            padding: 0;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent; /* Disable blue tap highlight on iOS */
+        }
+
+        /* Media Query for Mobile Devices */
+        @media (max-width: 768px) {
+            #mobile-controls {
+                display: block;
+            }
+
+            #game-header {
+                padding: 8px 15px;
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            #game-info {
+                margin-bottom: 8px;
+            }
+
+            #info { font-size: 18px; }
+            #score { font-size: 14px; }
+            #newGameBtn { font-size: 14px; padding: 6px 12px; }
+
+            #intro-screen, #game-over-screen {
+                width: 90%;
+                padding: 20px;
+                min-width: 0;
+            }
+
+            #intro-screen h2, #game-over-screen h2 {
+                font-size: 2em;
+            }
+            #intro-screen p, #game-over-screen p {
+                font-size: 1em;
+            }
+            #intro-screen button, #game-over-screen button {
+                font-size: 1.2em;
+                padding: 12px 24px;
+            }
+        }
     </style>
 </head>
 <body>
@@ -146,6 +221,13 @@
         <h2 id="winner-text">Black Wins!</h2>
         <p id="final-score-text">Final Score: 34 - 30</p>
         <button id="play-again-btn">Play Again</button>
+    </div>
+
+    <div id="mobile-controls">
+        <button id="rot-left">◄</button>
+        <button id="rot-right">►</button>
+        <button id="rot-up">▲</button>
+        <button id="rot-down">▼</button>
     </div>
 
     <script type="module" src="./main.js"></script>

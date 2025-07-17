@@ -84,6 +84,15 @@ let areValidMovesShown = false;
 let board;
 let currentPlayer;
 
+// NEW: State for mobile rotation controls
+const rotationState = {
+    left: false,
+    right: false,
+    up: false,
+    down: false,
+};
+const rotationSpeed = 0.02; // Radians per frame
+
 // ======== 3. RAYCASTING AND UI (No Changes) ========
 const raycaster = new THREE.Raycaster();
 const mouse = new THREE.Vector2();
@@ -377,14 +386,26 @@ function onMouseMove(event) {
 }
 function onMouseClick(event) {
   if (event.button !== 0) return;
-  mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
-  mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
-  raycaster.setFromCamera(mouse, camera);
-  const intersects = raycaster.intersectObjects(boardGroup.children);
-  if (intersects.length > 0) {
-    const coords = worldToBoardCoords(intersects[0].object.position);
-    makeMove(coords.x, coords.y, coords.z);
-  }
+  handleInteraction(event.clientX, event.clientY);
+}
+
+function onTouchStart(event) {
+    // Prevent the browser from doing its default touch stuff (like scrolling)
+    event.preventDefault();
+    // We only care about the first touch in a multi-touch scenario
+    const touch = event.touches[0];
+    handleInteraction(touch.clientX, touch.clientY);
+}
+
+function handleInteraction(x, y) {
+    mouse.x = (x / window.innerWidth) * 2 - 1;
+    mouse.y = -(y / window.innerHeight) * 2 + 1;
+    raycaster.setFromCamera(mouse, camera);
+    const intersects = raycaster.intersectObjects(boardGroup.children);
+    if (intersects.length > 0) {
+        const coords = worldToBoardCoords(intersects[0].object.position);
+        makeMove(coords.x, coords.y, coords.z);
+    }
 }
 
 function onKeyDown(event) {
@@ -405,8 +426,14 @@ function onKeyUp(event) {
 }
 
 function addGameEventListeners() {
+  // For mouse-based devices
   window.addEventListener("mousemove", onMouseMove);
   window.addEventListener("mousedown", onMouseClick);
+  
+  // For touch-based devices
+  window.addEventListener("touchstart", onTouchStart, { passive: false });
+
+  // Keyboard listeners remain the same
   window.addEventListener("keydown", onKeyDown);
   window.addEventListener("keyup", onKeyUp);
 }
@@ -414,6 +441,9 @@ function addGameEventListeners() {
 function removeGameEventListeners() {
   window.removeEventListener("mousemove", onMouseMove);
   window.removeEventListener("mousedown", onMouseClick);
+  
+  window.removeEventListener("touchstart", onTouchStart);
+
   window.removeEventListener("keydown", onKeyDown);
   window.removeEventListener("keyup", onKeyUp);
 }
@@ -440,11 +470,35 @@ function drawBoardGrid() {
 
 function animate() {
   requestAnimationFrame(animate);
+
+  // Handle mobile rotation
+  if (rotationState.left) {
+    controls.rotateLeft(rotationSpeed);
+  }
+  if (rotationState.right) {
+    controls.rotateLeft(-rotationSpeed);
+  }
+  if (rotationState.up) {
+    controls.rotateUp(rotationSpeed);
+  }
+  if (rotationState.down) {
+    controls.rotateUp(-rotationSpeed);
+  }
+
   controls.update();
   renderer.render(scene, camera);
 }
 
 // =========== LET'S START! ===========
+window.addEventListener('resize', () => {
+    // Update camera aspect ratio
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+
+    // Update renderer size
+    renderer.setSize(window.innerWidth, window.innerHeight);
+}, false);
+
 function initializeGame() {
     const introScreen = document.getElementById('intro-screen');
     const ui = document.getElementById('ui');
@@ -466,3 +520,26 @@ animate();
 document.getElementById("newGameBtn").addEventListener("click", newGame);
 document.getElementById('play-again-btn').addEventListener('click', newGame);
 document.getElementById('start-game-btn').addEventListener('click', initializeGame);
+
+// --- Mobile Rotation Button Listeners ---
+const rotLeftBtn = document.getElementById('rot-left');
+const rotRightBtn = document.getElementById('rot-right');
+const rotUpBtn = document.getElementById('rot-up');
+const rotDownBtn = document.getElementById('rot-down');
+
+function setupRotationButton(button, direction) {
+    const start = (e) => { e.preventDefault(); rotationState[direction] = true; };
+    const end = (e) => { e.preventDefault(); rotationState[direction] = false; };
+
+    button.addEventListener('mousedown', start);
+    button.addEventListener('touchstart', start, { passive: false });
+
+    button.addEventListener('mouseup', end);
+    button.addEventListener('mouseleave', end);
+    button.addEventListener('touchend', end);
+}
+
+setupRotationButton(rotLeftBtn, 'left');
+setupRotationButton(rotRightBtn, 'right');
+setupRotationButton(rotUpBtn, 'up');
+setupRotationButton(rotDownBtn, 'down');
