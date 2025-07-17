@@ -9,6 +9,17 @@
         #info { font-size: 24px; }
         #score { font-size: 18px; }
         button { padding: 10px; font-size: 16px; margin-top: 10px; }
+
+        #layer-controls {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            flex-direction: column;
+        }
+        #layer-controls button {
+            margin-bottom: 5px;
+        }
     </style>
 </head>
 <body>
@@ -17,6 +28,16 @@
         <div id="score">Black: 2 - White: 2</div>
         <button id="newGameBtn">New Game</button>
     </div>
+
+    !-- NEW: Add this div for the layer buttons -->
+    <div id="layer-controls">
+        <button id="reset-view">Show Full Cube</button>
+        <button id="layer-0">Inspect Bottom Layer (1)</button>
+        <button id="layer-1">Inspect Layer 2</button>
+        <button id="layer-2">Inspect Layer 3</button>
+        <button id="layer-3">Inspect Top Layer (4)</button>
+    </div>
+
     <script type="module" src="./main.js"></script>
 </body>
 </html>
