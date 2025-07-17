@@ -130,7 +130,7 @@ for (let i = -1; i <= 1; i++) {
   }
 }
 function newGame() {
-
+  removeGameEventListeners();
   const gameOverScreen = document.getElementById('game-over-screen');
   gameOverScreen.classList.add('hidden');
   gameOverScreen.classList.remove('visible');
@@ -158,6 +158,7 @@ function newGame() {
   areValidMovesShown = false;
   updateValidMovesVisuals(); // clear any old visuals
   updateGameInfo();
+  addGameEventListeners();
 }
 
 function worldToBoardCoords(position) {
@@ -188,6 +189,10 @@ function getFlipsInDirection(x, y, z, direction, player) {
   return [];
 }
 function isValidMove(x, y, z, player) {
+  // Defensive check: ensure board is initialized and coordinates are in bounds.
+  if (!board || x < 0 || x >= 4 || y < 0 || y >= 4 || z < 0 || z >= 4) {
+    return false;
+  }
   if (board[x][y][z] !== 0) return false;
   for (const direction of DIRECTIONS) {
     const flips = getFlipsInDirection(x, y, z, direction, player);
@@ -212,6 +217,7 @@ function getValidMoves(player) {
 }
 
 function endGame() {
+    removeGameEventListeners();
     // 1. Get the HTML elements for the game over screen
     const gameOverScreen = document.getElementById('game-over-screen');
     const winnerText = document.getElementById('winner-text');
@@ -314,6 +320,9 @@ function updateValidMovesVisuals() {
 
 // UPDATED: This function now also controls the empty cell markers.
 function setGhostMode(enabled) {
+  // Guard against running this function if the game/board isn't ready.
+  if (!board) return;
+
   // Part 1: Make existing pieces transparent
   for (const piece of piecesGroup.children) {
     const player = piece.userData.player;
@@ -378,6 +387,37 @@ function onMouseClick(event) {
   }
 }
 
+function onKeyDown(event) {
+  if (event.key === "Shift") {
+    setGhostMode(true);
+  }
+  if (event.key === ' ') {
+    event.preventDefault();
+    areValidMovesShown = !areValidMovesShown;
+    updateValidMovesVisuals();
+  }
+}
+
+function onKeyUp(event) {
+  if (event.key === "Shift") {
+    setGhostMode(false);
+  }
+}
+
+function addGameEventListeners() {
+  window.addEventListener("mousemove", onMouseMove);
+  window.addEventListener("mousedown", onMouseClick);
+  window.addEventListener("keydown", onKeyDown);
+  window.addEventListener("keyup", onKeyUp);
+}
+
+function removeGameEventListeners() {
+  window.removeEventListener("mousemove", onMouseMove);
+  window.removeEventListener("mousedown", onMouseClick);
+  window.removeEventListener("keydown", onKeyDown);
+  window.removeEventListener("keyup", onKeyUp);
+}
+
 // ======== 6. DRAWING THE BOARD & RUNNING THE GAME (No Changes) ========
 function drawBoardGrid() {
   const gridGeometry = new THREE.BoxGeometry(1, 1, 1);
@@ -405,34 +445,24 @@ function animate() {
 }
 
 // =========== LET'S START! ===========
+function initializeGame() {
+    const introScreen = document.getElementById('intro-screen');
+    const ui = document.getElementById('ui');
+
+    introScreen.classList.remove('visible');
+    introScreen.classList.add('hidden');
+    
+    ui.classList.remove('hidden');
+    ui.classList.add('visible');
+
+    newGame();
+}
+
 drawBoardGrid();
-newGame();
+// newGame(); // We don't start the game immediately anymore
 animate();
 
-// Listeners (No changes here)
-window.addEventListener("mousemove", onMouseMove);
-window.addEventListener("mousedown", onMouseClick);
+// Listeners for UI buttons that are always active
 document.getElementById("newGameBtn").addEventListener("click", newGame);
 document.getElementById('play-again-btn').addEventListener('click', newGame);
-
-window.addEventListener("keydown", (event) => {
-  if (event.key === "Shift") {
-    setGhostMode(true);
-  }
-
-  if (event.key === ' ') { // ' ' is the spacebar
-        event.preventDefault(); // Prevents the page from scrolling
-        areValidMovesShown = !areValidMovesShown; // Toggle the state
-        updateValidMovesVisuals(); // Update the visuals immediately
-    }
-});
-
-window.addEventListener("keyup", (event) => {
-  if (event.key === "Shift") {
-    setGhostMode(false);
-  }
-});
-
-
-
-
+document.getElementById('start-game-btn').addEventListener('click', initializeGame);
