@@ -1,9 +1,28 @@
 import * as THREE from "https://cdn.skypack.dev/three@0.132.2";
 import { OrbitControls } from "https://cdn.skypack.dev/three@0.132.2/examples/jsm/controls/OrbitControls.js";
 
+// ======== NEW: SOUND MANAGER ========
+const soundManager = {
+  sounds: {
+    place: new Audio("sounds/place.mp3"),
+    flip: new Audio("sounds/flip.mp3"),
+    error: new Audio("sounds/error.mp3"),
+    gameover: new Audio("sounds/gameover.mp3"),
+  },
+  play: function (soundName) {
+    const sound = this.sounds[soundName];
+    if (sound) {
+      sound.currentTime = 0;
+      sound.play().catch(e => console.error(`Could not play sound: ${soundName}`, e));
+    } else {
+      console.warn(`Sound not found: ${soundName}`);
+    }
+  },
+};
+
 // ======== 1. SCENE SETUP (No Changes) ========
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0x1a1a1a);
+scene.background = new THREE.Color(0x333333);
 const camera = new THREE.PerspectiveCamera(
   75,
   window.innerWidth / window.innerHeight,
@@ -27,8 +46,8 @@ const directionalLight = new THREE.DirectionalLight(0xffffff, 0.9);
 directionalLight.position.set(10, 20, 5);
 scene.add(directionalLight);
 
-// ======== 2. GAME ASSETS & DATA (UPDATED) ========
-const pieceGeometry = new THREE.SphereGeometry(0.4, 32, 16);
+// ======== 2. GAME ASSETS & DATA (UPDATED) =========
+const pieceGeometry = new THREE.SphereGeometry(0.38, 32, 16);
 
 // Normal, solid materials
 const blackMaterial = new THREE.MeshStandardMaterial({
@@ -145,6 +164,8 @@ function newGame() {
         .fill(0)
         .map(() => Array(4).fill(0))
     );
+
+
   board[1][1][2] = 1;
   board[1][2][1] = 1;
   board[2][1][1] = 1;
@@ -153,6 +174,19 @@ function newGame() {
   board[1][2][2] = 2;
   board[2][1][2] = 2;
   board[2][2][1] = 2;
+
+
+/*
+  board[1][1][2] = 1;
+  // board[1][2][1] = 1;
+  // board[2][1][1] = 1;
+  board[2][2][2] = 2;
+  // board[1][1][1] = 2;
+  board[1][2][2] = 2;
+  // board[2][1][2] = 2;
+  board[2][2][1] = 1;
+  */
+
   currentPlayer = 1;
   updateVisuals();
   areValidMovesShown = false;
@@ -217,6 +251,7 @@ function getValidMoves(player) {
 }
 
 function endGame() {
+    soundManager.play('gameover'); // Play game over sound
     removeGameEventListeners();
     // 1. Get the HTML elements for the game over screen
     const gameOverScreen = document.getElementById('game-over-screen');
@@ -268,17 +303,24 @@ function switchPlayer() {
 
 function makeMove(x, y, z) {
   if (!isValidMove(x, y, z, currentPlayer)) {
+    // Note: The error sound is handled in onMouseClick for immediate feedback.
     return;
   }
+
+  soundManager.play('place'); // Play sound on valid move
+
   let allFlips = [];
   for (const direction of DIRECTIONS) {
     const flips = getFlipsInDirection(x, y, z, direction, currentPlayer);
     allFlips = allFlips.concat(flips);
   }
+
   board[x][y][z] = currentPlayer;
   for (const pos of allFlips) {
     board[pos.x][pos.y][pos.z] = currentPlayer;
+    soundManager.play('flip'); // Play flip sound for each flipped piece
   }
+
   switchPlayer();
   updateVisuals();
   updateGameInfo();
@@ -383,7 +425,12 @@ function onMouseClick(event) {
   const intersects = raycaster.intersectObjects(boardGroup.children);
   if (intersects.length > 0) {
     const coords = worldToBoardCoords(intersects[0].object.position);
-    makeMove(coords.x, coords.y, coords.z);
+    // Check for validity BEFORE calling makeMove to play the error sound
+    if (isValidMove(coords.x, coords.y, coords.z, currentPlayer)) {
+      makeMove(coords.x, coords.y, coords.z);
+    } else {
+      soundManager.play('error'); // Play error sound on invalid move
+    }
   }
 }
 
