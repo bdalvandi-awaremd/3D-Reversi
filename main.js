@@ -11,6 +11,11 @@ document.body.appendChild(renderer.domElement);
 const controls = new OrbitControls(camera, renderer.domElement);
 camera.position.set(5, 5, 5);
 controls.update();
+controls.mouseButtons = {
+	LEFT: null, // Setting LEFT to null makes OrbitControls ignore left-clicks.
+	MIDDLE: THREE.MOUSE.DOLLY, // Middle-mouse button still zooms.
+	RIGHT: THREE.MOUSE.ROTATE // RIGHT mouse button now rotates the camera.
+}
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.7);
 scene.add(ambientLight);
 const directionalLight = new THREE.DirectionalLight(0xffffff, 0.9);
@@ -130,7 +135,16 @@ function setGhostMode(enabled) {
 
 // ... (onMouseMove and onMouseClick listeners remain the same) ...
 function onMouseMove(event) { mouse.x = (event.clientX / window.innerWidth) * 2 - 1; mouse.y = - (event.clientY / window.innerHeight) * 2 + 1; raycaster.setFromCamera(mouse, camera); const intersects = raycaster.intersectObjects(boardGroup.children); if (intersects.length > 0) { const coords = worldToBoardCoords(intersects[0].object.position); if (isValidMove(coords.x, coords.y, coords.z, currentPlayer)) { highlightMesh.position.copy(intersects[0].object.position); highlightMesh.visible = true; } else { highlightMesh.visible = false; } } else { highlightMesh.visible = false; } }
-function onMouseClick(event) { mouse.x = (event.clientX / window.innerWidth) * 2 - 1; mouse.y = - (event.clientY / window.innerHeight) * 2 + 1; raycaster.setFromCamera(mouse, camera); const intersects = raycaster.intersectObjects(boardGroup.children); if (intersects.length > 0) { const coords = worldToBoardCoords(intersects[0].object.position); makeMove(coords.x, coords.y, coords.z); } }
+function onMouseClick(event) {
+    if (event.button !== 0) return;
+    mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+    mouse.y = - (event.clientY / window.innerHeight) * 2 + 1;
+    raycaster.setFromCamera(mouse, camera); const intersects = raycaster.intersectObjects(boardGroup.children); 
+    if (intersects.length > 0) { 
+        const coords = worldToBoardCoords(intersects[0].object.position); 
+        makeMove(coords.x, coords.y, coords.z); 
+    } 
+}
 
 // ======== 6. DRAWING THE BOARD & RUNNING THE GAME (No Changes) ========
 function drawBoardGrid() {
